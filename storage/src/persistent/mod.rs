@@ -40,6 +40,12 @@ fn default_kv_options() -> Options {
     let mut db_opts = Options::default();
     db_opts.create_missing_column_families(true);
     db_opts.create_if_missing(true);
+
+    // https://github.com/facebook/rocksdb/wiki/RocksDB-Tuning-Guide#rocksdb-statistics
+    db_opts.enable_statistics();
+    db_opts.set_stats_dump_period_sec(15);
+    db_opts.set_report_bg_io_stats(true);
+
     db_opts
 }
 

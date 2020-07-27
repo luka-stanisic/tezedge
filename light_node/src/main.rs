@@ -298,6 +298,21 @@ fn main() {
         _ => ()
     }
 
+    // TODO: thread spawning rocksdb stats every 10 seconds
+    {
+        let log = log.clone();
+        let rocks_db = rocks_db.clone();
+        thread::spawn(move || {
+            loop {
+                let stats = rocks_db.property_value("rocksdb.stats");
+                if let Ok(stats) = stats {
+                    info!(log, "RocksDB stats: \n{}", stats.unwrap_or("-none-".to_string()));
+                }
+                thread::sleep(Duration::from_secs(10));
+            }
+        });
+    }
+
     let schemas = vec![
         BlockStorage::descriptor()
     ];
