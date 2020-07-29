@@ -766,6 +766,7 @@ steps:
       - rust_libs=$(echo "`rustup show home`/toolchains/`rustup show active-toolchain | tr " " "\n" | head -1`/lib")
       - export LD_LIBRARY_PATH="/artifacts/ffi:$rust_libs"
       - echo "LD_LIBRARY_PATH - $LD_LIBRARY_PATH"
+      - cd /tmp/tezedge_developer/
       - pwd
       - valgrind --tool=massif /artifacts/light-node --config-file "/artifacts/tezedge/tezedge_drone.config" --identity-file "/artifacts/docker/identities/identity_tezedge.json" --network "$${NETWORK}" --protocol-runner "/tmp/tezedge_developer/protocol-runner" --p2p-port 19732
 
