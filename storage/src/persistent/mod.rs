@@ -52,6 +52,8 @@ fn default_kv_options() -> Options {
     db_opts.set_bytes_per_sync(1048576);
     let mut table_opts = BlockBasedOptions::default();
     table_opts.set_block_size(16 * 1024);
+    table_opts.set_format_version(4);
+    table_opts.set_index_block_restart_interval(16);
     table_opts.set_cache_index_and_filter_blocks(true);
     table_opts.set_pin_l0_filter_and_index_blocks_in_cache(true);
     db_opts.set_block_based_table_factory(&table_opts);
