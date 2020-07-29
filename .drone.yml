@@ -771,8 +771,9 @@ steps:
       - pwd
       - valgrind --tool=massif /artifacts/light-node --config-file "/artifacts/tezedge/tezedge_drone.config" --identity-file "/artifacts/docker/identities/identity_tezedge.json" --network "$${NETWORK}" --protocol-runner "/tmp/tezedge_developer/protocol-runner" --p2p-port 19732 &
       - sleep 5
+      - ps
       - ps -ef
-      - pid=$(ps | grep valgrind | awk '{print $1}')
+      - pid=$(ps -f | grep valgrind | awk "{print $2}")
       - echo $pid
       - kill $pid
       - sleep 2
