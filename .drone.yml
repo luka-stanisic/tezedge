@@ -768,7 +768,10 @@ steps:
       - echo "LD_LIBRARY_PATH - $LD_LIBRARY_PATH"
       - cd /tmp/tezedge_developer/
       - pwd
-      - valgrind --tool=massif /artifacts/light-node --config-file "/artifacts/tezedge/tezedge_drone.config" --identity-file "/artifacts/docker/identities/identity_tezedge.json" --network "$${NETWORK}" --protocol-runner "/tmp/tezedge_developer/protocol-runner" --p2p-port 19732
+      - valgrind --tool=massif /artifacts/light-node --config-file "/artifacts/tezedge/tezedge_drone.config" --identity-file "/artifacts/docker/identities/identity_tezedge.json" --network "$${NETWORK}" --protocol-runner "/tmp/tezedge_developer/protocol-runner" --p2p-port 19732 &
+      - sleep 5
+      - kill `ps | grep valgrind | awk '{print $1}'`
+      - ls -ls
 
   - name: bootstrapping-tezedge
     image: simplestakingcom/tezos-node-bootstrap:latest
