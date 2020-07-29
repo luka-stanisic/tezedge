@@ -646,7 +646,7 @@ depends_on:
 
 ---
 kind: pipeline
-name: memory-analyse-test
+name: heaptrack-memory-analyse-test
 
 clone:
   disable: true
@@ -706,6 +706,81 @@ steps:
       path: /tmp/tezedge_developer
   commands:
     - cp -R /drone/src/heaptrack* /tmp/tezedge_developer/
+
+volumes:
+  - name: build
+    host:
+      path: /etc/tezedge-ci-build-tmp/
+  - name: tezedge-node-data-memory
+    host:
+      path: /etc/tezedge-node-memory
+
+trigger:
+  branch:
+    - feature/perf
+
+---
+kind: pipeline
+name: valgrind-memory-analyse-test
+
+clone:
+  disable: true
+
+workspace:
+  path: /drone/src
+
+environment:
+  NETWORK: carthagenet
+  FROM_BLOCK_HEADER: 0
+  TO_BLOCK_HEADER: 1 # also check parameter --stop=
+  SODIUM_USE_PKG_CONFIG: 1
+  LD_LIBRARY_PATH: ./tezos/interop/lib_tezos/artifacts:./target/release
+  TEZEDGE_NODE_RPC_CONTEXT_ROOT: http://tezedge-node-run:18732
+
+steps:
+  - name: cleanup-node-data
+    image: alpine/git
+    user: root
+    volumes:
+      - name: tezedge-node-data-memory
+        path: /tmp/tezedge_developer
+    commands:
+      - rm -rf /tmp/tezedge_developer/light-node
+      - rm -rf /tmp/tezedge_developer/tezos-node
+
+  - name: tezedge-node-run
+    image: simplestakingcom/tezedge-ci-builder:latest
+    pull: if-not-exists
+    user: root
+    detach: true
+    volumes:
+      - name: build
+        path: /artifacts
+      - name: tezedge-node-data-memory
+        path: /tmp/tezedge_developer
+    environment:
+      SODIUM_USE_PKG_CONFIG: 1
+    commands:
+      - apt install valgrind -y
+      - cp /artifacts/protocol-runner /tmp/tezedge_developer/
+      - rust_libs=$(echo "`rustup show home`/toolchains/`rustup show active-toolchain | tr " " "\n" | head -1`/lib")
+      - export LD_LIBRARY_PATH="/artifacts/ffi:$rust_libs"
+      - echo "LD_LIBRARY_PATH - $LD_LIBRARY_PATH"
+      - valgrind --tool=massif /artifacts/light-node --config-file "/artifacts/tezedge/tezedge_drone.config" --identity-file "/artifacts/docker/identities/identity_tezedge.json" --network "$${NETWORK}" --protocol-runner "/tmp/tezedge_developer/protocol-runner" --p2p-port 19732
+
+  - name: bootstrapping-tezedge
+    image: simplestakingcom/tezos-node-bootstrap:latest
+    commands:
+      - tezos-node-bootstrap --bootstrap --level=$${TO_BLOCK_HEADER} --node_tezedge=$${TEZEDGE_NODE_RPC_CONTEXT_ROOT}
+
+  - name: copy-massif
+    image: alpine/git
+    user: root
+    volumes:
+      - name: tezedge-node-data-memory
+        path: /tmp/tezedge_developer
+    commands:
+      - cp -R /drone/src/massif.out* /tmp/tezedge_developer/
 
 volumes:
   - name: build
