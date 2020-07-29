@@ -5,7 +5,7 @@ use std::collections::BTreeMap;
 use std::path::Path;
 use std::sync::{Arc, RwLock};
 
-use rocksdb::{ColumnFamilyDescriptor, DB, Options};
+use rocksdb::{BlockBasedOptions, ColumnFamilyDescriptor, DB, DBCompactionStyle, DBCompressionType, Options};
 
 pub use codec::{BincodeEncoded, Codec, Decoder, Encoder, SchemaError};
 pub use commit_log::{CommitLogError, CommitLogRef, CommitLogs, CommitLogWithSchema, Location};
@@ -45,8 +45,16 @@ fn default_kv_options() -> Options {
     db_opts.enable_statistics();
     db_opts.set_stats_dump_period_sec(15);
     db_opts.set_report_bg_io_stats(true);
-    db_opts.set_max_total_wal_size(1024 * 1024);
 
+    db_opts.set_level_compaction_dynamic_level_bytes(true);
+    db_opts.set_max_background_compactions(4);
+    db_opts.set_max_background_flushes(2);
+    db_opts.set_bytes_per_sync(1048576);
+    let mut table_opts = BlockBasedOptions::default();
+    table_opts.set_block_size(16 * 1024);
+    table_opts.set_cache_index_and_filter_blocks(true);
+    table_opts.set_pin_l0_filter_and_index_blocks_in_cache(true);
+    db_opts.set_block_based_table_factory(&table_opts);
     db_opts
 }
 
