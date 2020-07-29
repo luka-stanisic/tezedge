@@ -90,7 +90,7 @@ trigger:
   branch:
     - master
     - develop
-    - feature/perf
+    - feature/perf2
 
 ##############################################################################################################
 # This pipeline runs tezedge node with sandbox configuration and does transfer with tezos_client
@@ -717,7 +717,7 @@ volumes:
 
 trigger:
   branch:
-    - feature/perf
+    - feature/perf2
 
 ---
 kind: pipeline
@@ -732,7 +732,7 @@ workspace:
 environment:
   NETWORK: carthagenet
   FROM_BLOCK_HEADER: 0
-  TO_BLOCK_HEADER: 1 # also check parameter --stop=
+  TO_BLOCK_HEADER: 0 # also check parameter --stop=
   SODIUM_USE_PKG_CONFIG: 1
   LD_LIBRARY_PATH: ./tezos/interop/lib_tezos/artifacts:./target/release
   TEZEDGE_NODE_RPC_CONTEXT_ROOT: http://tezedge-node-run:18732
@@ -766,6 +766,7 @@ steps:
       - rust_libs=$(echo "`rustup show home`/toolchains/`rustup show active-toolchain | tr " " "\n" | head -1`/lib")
       - export LD_LIBRARY_PATH="/artifacts/ffi:$rust_libs"
       - echo "LD_LIBRARY_PATH - $LD_LIBRARY_PATH"
+      - pwd
       - valgrind --tool=massif /artifacts/light-node --config-file "/artifacts/tezedge/tezedge_drone.config" --identity-file "/artifacts/docker/identities/identity_tezedge.json" --network "$${NETWORK}" --protocol-runner "/tmp/tezedge_developer/protocol-runner" --p2p-port 19732
 
   - name: bootstrapping-tezedge
@@ -780,7 +781,8 @@ steps:
       - name: tezedge-node-data-memory
         path: /tmp/tezedge_developer
     commands:
-      - cp -R /drone/src/massif.out* /tmp/tezedge_developer/
+      - pwd && ls -la
+      - cp -R /drone/src/massif* /tmp/tezedge_developer/
 
 volumes:
   - name: build
