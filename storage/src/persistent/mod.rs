@@ -45,6 +45,7 @@ fn default_kv_options() -> Options {
     db_opts.enable_statistics();
     db_opts.set_stats_dump_period_sec(15);
     db_opts.set_report_bg_io_stats(true);
+    db_opts.set_max_total_wal_size(1024 * 1024);
 
     db_opts
 }

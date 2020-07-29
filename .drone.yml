@@ -90,7 +90,7 @@ trigger:
   branch:
     - master
     - develop
-    - feature/perf2
+    - feature/perf
 
 ##############################################################################################################
 # This pipeline runs tezedge node with sandbox configuration and does transfer with tezos_client
