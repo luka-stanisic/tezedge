@@ -773,7 +773,7 @@ steps:
       - sleep 5
       - ps
       - ps -ef
-      - pid=$(ps -f | grep valgrind | awk "{print $2}")
+      - pid=$(ps -f | grep valgrind | awk '{print $2}')
       - echo $pid
       - kill $pid
       - sleep 2
