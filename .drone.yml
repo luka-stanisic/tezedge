@@ -54,21 +54,30 @@ steps:
     # prepare rust toolchain dir
     - echo "`rustup show home`/toolchains/`rustup show active-toolchain | tr " " "\n" | head -1`/lib"
     # build and test
-    - cargo build --release --workspace
-    - cargo test --release --workspace
+    - cargo build --workspace
+    - cargo test --workspace
+#    - cargo build --release --workspace
+#    - cargo test --release --workspace
     # build special tests
     - export LD_LIBRARY_PATH=./tezos/interop/lib_tezos/artifacts
-    - export PROTOCOL_RUNNER=/drone/src/target/release/protocol-runner
+    - export PROTOCOL_RUNNER=/drone/src/target/debug/protocol-runner
+#    - export LD_LIBRARY_PATH=./tezos/interop/lib_tezos/artifacts
+#    - export PROTOCOL_RUNNER=/drone/src/target/release/protocol-runner
 #    - cargo test --package shell --release -- --nocapture --ignored test_mutliple_protocol_runners_with_one_write_multiple_read_init_context
 #    - cargo test --package shell --release -- --nocapture --ignored test_readonly_protocol_runner_connection_pool
 #    - cargo test --package shell --release -- --nocapture --ignored test_actors_apply_blocks_and_check_context_and_mempool
     # collect binary artefacts
     - mkdir /artifacts/ffi
     - mkdir /artifacts/tezedge
+    - mkdir /artifacts/tests
     - mkdir -p /artifacts/docker/identities
-    - cp ./target/release/light-node /artifacts
-    - cp ./target/release/protocol-runner /artifacts
-    - cp ./target/release/libtezos_interop_callback.so /artifacts/ffi
+    - cp ./target/debug/light-node /artifacts
+    - cp ./target/debug/protocol-runner /artifacts
+    - cp ./target/debug/libtezos_interop_callback.so /artifacts/ffi
+    - cp ./target/debug/deps/actors_apply_blocks_test* /artifacts/tests
+#    - cp ./target/release/light-node /artifacts
+#    - cp ./target/release/protocol-runner /artifacts
+#    - cp ./target/release/libtezos_interop_callback.so /artifacts/ffi
     - cp ./tezos/interop/lib_tezos/artifacts/libtezos.so /artifacts/ffi
 #    - cp `find ./target/release/deps/ | grep integration_test | grep -v "\.d" | head -1` /artifacts/rpc_integration_test
     - cp ./light_node/etc/tezedge_sandbox/sandbox-patch-context.json /tmp/sandbox/
@@ -805,4 +814,4 @@ volumes:
 
 trigger:
   branch:
-    - feature/perf
+    - feature/perf2
