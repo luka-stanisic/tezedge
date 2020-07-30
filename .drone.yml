@@ -730,7 +730,7 @@ workspace:
   path: /drone/src
 
 environment:
-  NETWORK: zeronet
+  NETWORK: mainnet
   FROM_BLOCK_HEADER: 0
   TO_BLOCK_HEADER: 10000 # also check parameter --stop=
   SODIUM_USE_PKG_CONFIG: 1
