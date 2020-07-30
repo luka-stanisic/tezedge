@@ -34,7 +34,7 @@ steps:
     - rm -rf /tmp/sandbox/tezos-node
     - rm -rf /tmp/sandbox/tezos-client
     - rm -rf /home/tezos/data/
-    - rm -rf /artifacts/*
+#    - rm -rf /artifacts/*
 
 - name: test-and-build-artifacts
   image: simplestakingcom/tezedge-ci-builder:latest
@@ -54,8 +54,8 @@ steps:
     # prepare rust toolchain dir
     - echo "`rustup show home`/toolchains/`rustup show active-toolchain | tr " " "\n" | head -1`/lib"
     # build and test
-    - cargo build --workspace
-    - cargo test --workspace
+#    - cargo build --workspace
+#    - cargo test --workspace
 #    - cargo build --release --workspace
 #    - cargo test --release --workspace
     # build special tests
@@ -67,37 +67,36 @@ steps:
 #    - cargo test --package shell --release -- --nocapture --ignored test_readonly_protocol_runner_connection_pool
 #    - cargo test --package shell --release -- --nocapture --ignored test_actors_apply_blocks_and_check_context_and_mempool
     # collect binary artefacts
-    - mkdir /artifacts/ffi
-    - mkdir /artifacts/tezedge
-    - mkdir /artifacts/tests
+#    - mkdir /artifacts/ffi
+#    - mkdir /artifacts/tezedge
+#    - mkdir /artifacts/tests
+    - rm -rf /artifacts/tests/data
     - mkdir /artifacts/tests/data
-    - mkdir -p /artifacts/docker/identities
-    - cp ./target/debug/light-node /artifacts
-    - cp ./target/debug/protocol-runner /artifacts
-    - cp ./target/debug/libtezos_interop_callback.so /artifacts/ffi
-    - cp ./target/debug/deps/actors_apply_blocks_test* /artifacts/tests
+#    - mkdir -p /artifacts/docker/identities
+#    - cp ./target/debug/light-node /artifacts
+#    - cp ./target/debug/protocol-runner /artifacts
+#    - cp ./target/debug/libtezos_interop_callback.so /artifacts/ffi
+#    - cp ./target/debug/deps/actors_apply_blocks_test* /artifacts/tests
 #    - cp ./target/release/light-node /artifacts
 #    - cp ./target/release/protocol-runner /artifacts
 #    - cp ./target/release/libtezos_interop_callback.so /artifacts/ffi
-    - cp ./tezos/interop/lib_tezos/artifacts/libtezos.so /artifacts/ffi
+#    - cp ./tezos/interop/lib_tezos/artifacts/libtezos.so /artifacts/ffi
 #    - cp `find ./target/release/deps/ | grep integration_test | grep -v "\.d" | head -1` /artifacts/rpc_integration_test
-    - cp ./light_node/etc/tezedge_sandbox/sandbox-patch-context.json /tmp/sandbox/
-    - cp ./light_node/etc/tezedge_sandbox/006-carthage-protocol-parameters.json /tmp/sandbox/
-    - cp ./light_node/etc/tezedge_sandbox/tezedge_drone_sandbox.config /tmp/sandbox/
-    - cp ./light_node/etc/drone/assert_equals.sh /tmp/sandbox/ && chmod 755 /tmp/sandbox/assert_equals.sh
-    - cp ./docker/identities/* /artifacts/docker/identities/
-    - cp ./light_node/etc/tezedge/tezedge_drone.config /artifacts/tezedge/
+#    - cp ./light_node/etc/tezedge_sandbox/sandbox-patch-context.json /tmp/sandbox/
+#    - cp ./light_node/etc/tezedge_sandbox/006-carthage-protocol-parameters.json /tmp/sandbox/
+#    - cp ./light_node/etc/tezedge_sandbox/tezedge_drone_sandbox.config /tmp/sandbox/
+#    - cp ./light_node/etc/drone/assert_equals.sh /tmp/sandbox/ && chmod 755 /tmp/sandbox/assert_equals.sh
+#    - cp ./docker/identities/* /artifacts/docker/identities/
+#    - cp ./light_node/etc/tezedge/tezedge_drone.config /artifacts/tezedge/
     - apt install heaptrack -y
     - apt install valgrind -y
     - apt install procps -y
     - cd /artifacts/tests/data
-    - pwd
-    - export CARGO_MANIFEST_DIR=/opt/tezos-env/tezos-rs/tezedge/shell
-    - export PROTOCOL_RUNNER=/opt/tezos-env/tezos-rs/tezedge/target/release/protocol-runner
+    - export CARGO_MANIFEST_DIR=/drone/src/shell
     - export OUT_DIR=/artifacts/tests/data
-    - valgrind --tool=massif /artifacts/tests/actors_apply_blocks_test-0cfd2b9532eb8c41 --ignored
-    - valgrind --tool=memcheck /artifacts/tests/actors_apply_blocks_test-0cfd2b9532eb8c41 --ignored
-    - heaptrack --tool=memcheck /artifacts/tests/actors_apply_blocks_test-0cfd2b9532eb8c41 --ignored
+    - valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose --log-file=/artifacts/tests/data/valgrind-out.txt /artifacts/tests/actors_apply_blocks_test-0cfd2b9532eb8c41 --ignored
+    - valgrind --tool=massif  /artifacts/tests/actors_apply_blocks_test-0cfd2b9532eb8c41 --ignored
+    - heaptrack /artifacts/tests/actors_apply_blocks_test-0cfd2b9532eb8c41 --ignored
 
 volumes:
   - name: build
