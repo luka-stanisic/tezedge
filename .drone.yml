@@ -70,6 +70,7 @@ steps:
     - mkdir /artifacts/ffi
     - mkdir /artifacts/tezedge
     - mkdir /artifacts/tests
+    - mkdir /artifacts/tests/data
     - mkdir -p /artifacts/docker/identities
     - cp ./target/debug/light-node /artifacts
     - cp ./target/debug/protocol-runner /artifacts
@@ -86,6 +87,17 @@ steps:
     - cp ./light_node/etc/drone/assert_equals.sh /tmp/sandbox/ && chmod 755 /tmp/sandbox/assert_equals.sh
     - cp ./docker/identities/* /artifacts/docker/identities/
     - cp ./light_node/etc/tezedge/tezedge_drone.config /artifacts/tezedge/
+    - apt install heaptrack -y
+    - apt install valgrind -y
+    - apt install procps -y
+    - cd /artifacts/tests/data
+    - pwd
+    - export CARGO_MANIFEST_DIR=/opt/tezos-env/tezos-rs/tezedge/shell
+    - export PROTOCOL_RUNNER=/opt/tezos-env/tezos-rs/tezedge/target/release/protocol-runner
+    - export OUT_DIR=/artifacts/tests/data
+    - valgrind --tool=massif /artifacts/tests/actors_apply_blocks_test-0cfd2b9532eb8c41 --ignored
+    - valgrind --tool=memcheck /artifacts/tests/actors_apply_blocks_test-0cfd2b9532eb8c41 --ignored
+    - heaptrack --tool=memcheck /artifacts/tests/actors_apply_blocks_test-0cfd2b9532eb8c41 --ignored
 
 volumes:
   - name: build
