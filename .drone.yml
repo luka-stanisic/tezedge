@@ -867,7 +867,7 @@ steps:
 #      - RUSTFLAGS="-Z sanitizer=address" cargo build --target x86_64-unknown-linux-gnu --release
 #      - RUSTFLAGS="-Z sanitizer=address" cargo test --target x86_64-unknown-linux-gnu --release
 #      - RUSTFLAGS="-Z sanitizer=address" cargo build --target x86_64-unknown-linux-gnu --workspace
-      - cargo install clippy
+      - rustup component add clippy
       - cargo clippy --all-targets --all-features
       # build special tests
 #      - RUSTFLAGS="-Z sanitizer=address" cargo bench --target x86_64-unknown-linux-gnu --tests test_performance -- --nocapture
