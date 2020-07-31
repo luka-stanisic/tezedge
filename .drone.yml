@@ -844,7 +844,7 @@ steps:
     commands:
       - rm -rf /data/*
 
-  - name: leak-sanitizer-test-and-build
+  - name: address-sanitizer-test-and-build
     image: simplestakingcom/tezedge-ci-builder:latest
     privileged: true
     user: root
@@ -859,10 +859,10 @@ steps:
       OCAML_LOG_ENABLED: false
     commands:
       # build and test with sanitizers
-      - RUSTFLAGS="-Z sanitizer=leak" cargo build --target x86_64-unknown-linux-gnu --workspace
-      - RUSTFLAGS="-Z sanitizer=leak" cargo test --target x86_64-unknown-linux-gnu --workspace
+      - ASAN_OPTIONS=detect_stack_use_after_return=1 RUSTFLAGS="-Z sanitizer=address" cargo build --target x86_64-unknown-linux-gnu --workspace
+      - ASAN_OPTIONS=detect_stack_use_after_return=1 RUSTFLAGS="-Z sanitizer=address" cargo test --target x86_64-unknown-linux-gnu --workspace
       # build special tests
-      - RUSTFLAGS="-Z sanitizer=leak" cargo bench --target x86_64-unknown-linux-gnu --tests test_performance -- --nocapture
+      - ASAN_OPTIONS=detect_stack_use_after_return=1 RUSTFLAGS="-Z sanitizer=address" cargo bench --target x86_64-unknown-linux-gnu --tests test_performance -- --nocapture
 
 volumes:
   - name: performance

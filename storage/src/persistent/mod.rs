@@ -82,6 +82,13 @@ pub fn tunned_kv_options() -> DbOptions {
     let mut db_opts = Options::default();
     db_opts.create_missing_column_families(true);
     db_opts.create_if_missing(true);
+
+    db_opts.increase_parallelism(2);
+    db_opts.set_level_compaction_dynamic_level_bytes(true);
+    db_opts.set_max_background_compactions(4);
+    db_opts.set_max_background_flushes(2);
+    db_opts.set_bytes_per_sync(1048576);
+
     db_opts
 }
 
