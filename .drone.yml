@@ -110,7 +110,7 @@ trigger:
   branch:
     - master
     - develop
-    - feature/perf
+    - feature/perf2
 
 ##############################################################################################################
 # This pipeline runs tezedge node with sandbox configuration and does transfer with tezos_client
@@ -826,3 +826,49 @@ volumes:
 trigger:
   branch:
     - feature/perf2
+
+---
+kind: pipeline
+name: sanitized-build-and-tests
+
+workspace:
+  path: /drone/src
+
+steps:
+  - name: cleanup-data
+    image: alpine/git
+    user: root
+    volumes:
+      - name: performance
+        path: /data
+    commands:
+      - rm -rf /data/*
+
+  - name: leak-sanitizer-test-and-build
+    image: simplestakingcom/tezedge-ci-builder:latest
+    privileged: true
+    user: root
+    volumes:
+      - name: performance
+        path: /data
+    environment:
+      RUST_BACKTRACE: 1
+      SODIUM_USE_PKG_CONFIG: 1
+      OCAML_BUILD_CHAIN: remote
+      LOG_LEVEL: info
+      OCAML_LOG_ENABLED: false
+    commands:
+      # build and test with sanitizers
+      - RUSTFLAGS="-Z sanitizer=leak" cargo build --target x86_64-unknown-linux-gnu --workspace
+      - RUSTFLAGS="-Z sanitizer=leak" cargo test --target x86_64-unknown-linux-gnu --workspace
+      # build special tests
+      - RUSTFLAGS="-Z sanitizer=leak" cargo bench --target x86_64-unknown-linux-gnu --tests test_performance -- --nocapture
+
+volumes:
+  - name: performance
+    host:
+      path: /etc/tezedge-ci-build-performance/
+
+trigger:
+  branch:
+    - feature/perf

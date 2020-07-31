@@ -352,6 +352,7 @@ pub mod tests_common {
     use crate::skip_list::{DatabaseBackedSkipList, Lane, ListValue};
 
     use super::*;
+    use rocksdb::Options;
 
     pub struct TmpStorage {
         persistent_storage: PersistentStorage,
@@ -360,13 +361,17 @@ pub mod tests_common {
 
     impl TmpStorage {
         pub fn create<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
+            Self::create_with_opts(path, &default_kv_options())
+        }
+
+        pub fn create_with_opts<P: AsRef<Path>>(path: P, opts: &Options) -> Result<Self, Error> {
             let path = path.as_ref().to_path_buf();
             // remove previous data if exists
             if Path::new(&path).exists() {
                 fs::remove_dir_all(&path).unwrap();
             }
 
-            let kv = open_kv(&path, vec![
+            let kv = open_kv_with_opts(&path, vec![
                 block_storage::BlockPrimaryIndex::descriptor(),
                 block_storage::BlockByLevelIndex::descriptor(),
                 block_storage::BlockByContextHashIndex::descriptor(),
@@ -383,7 +388,7 @@ pub mod tests_common {
                 ListValue::descriptor(),
                 MempoolStorage::descriptor(),
                 ContextActionStorage::descriptor()
-            ])?;
+            ], &opts)?;
             let clog = open_cl(&path, vec![
                 BlockStorage::descriptor(),
             ])?;

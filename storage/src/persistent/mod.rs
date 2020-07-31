@@ -21,6 +21,8 @@ pub mod schema;
 pub mod database;
 pub mod commit_log;
 
+pub type DbOptions = Options;
+
 /// Open RocksDB database at given path with specified Column Family configurations
 ///
 /// # Arguments
@@ -31,12 +33,26 @@ pub fn open_kv<P, I>(path: P, cfs: I) -> Result<DB, DBError>
         P: AsRef<Path>,
         I: IntoIterator<Item=ColumnFamilyDescriptor>,
 {
-    DB::open_cf_descriptors(&default_kv_options(), path, cfs)
+    open_kv_with_opts( path, cfs, &default_kv_options())
+}
+
+/// Open RocksDB database at given path with specified Column Family configurations and custom db options
+///
+/// # Arguments
+/// * `path` - Path to open RocksDB
+/// * `cfs` - Iterator of Column Family descriptors
+/// * `opts` - Custom Options
+pub fn open_kv_with_opts<P, I>(path: P, cfs: I, opts: &DbOptions) -> Result<DB, DBError>
+    where
+        P: AsRef<Path>,
+        I: IntoIterator<Item=ColumnFamilyDescriptor>,
+{
+    DB::open_cf_descriptors(&opts, path, cfs)
         .map_err(DBError::from)
 }
 
 /// Create default database configuration options
-fn default_kv_options() -> Options {
+pub fn default_kv_options() -> DbOptions {
     let mut db_opts = Options::default();
     db_opts.create_missing_column_families(true);
     db_opts.create_if_missing(true);
@@ -57,6 +73,15 @@ fn default_kv_options() -> Options {
     table_opts.set_cache_index_and_filter_blocks(true);
     table_opts.set_pin_l0_filter_and_index_blocks_in_cache(true);
     db_opts.set_block_based_table_factory(&table_opts);
+
+    db_opts
+}
+
+/// Create tunned database configuration options, according to: https://github.com/facebook/rocksdb/wiki/Setup-Options-and-Basic-Tuning#other-general-options
+pub fn tunned_kv_options() -> DbOptions {
+    let mut db_opts = Options::default();
+    db_opts.create_missing_column_families(true);
+    db_opts.create_if_missing(true);
     db_opts
 }
 
