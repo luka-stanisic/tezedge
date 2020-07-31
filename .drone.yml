@@ -861,11 +861,14 @@ steps:
       # build and test with sanitizers
       - apt-get install -y llvm llvm-dev
       - export ASAN_SYMBOLIZER_PATH=/usr/bin/llvm-symbolizer
-      - export ASAN_OPTIONS=detect_leaks=1:detect_stack_use_after_return=1:debug=true:print_stats=true:verbosity=2
-      - RUSTFLAGS="-Z sanitizer=address" cargo build --target x86_64-unknown-linux-gnu --release
-      - RUSTFLAGS="-Z sanitizer=address" cargo test --target x86_64-unknown-linux-gnu --release
+#      - export ASAN_OPTIONS=detect_leaks=1:detect_stack_use_after_return=1:debug=true:print_stats=true:verbosity=2
+#      - RUSTFLAGS="-Z sanitizer=address" cargo build --target x86_64-unknown-linux-gnu --release
+#      - RUSTFLAGS="-Z sanitizer=address" cargo test --target x86_64-unknown-linux-gnu --release
+#      - RUSTFLAGS="-Z sanitizer=address" cargo build --target x86_64-unknown-linux-gnu --release
+#      - RUSTFLAGS="-Z sanitizer=address" cargo test --target x86_64-unknown-linux-gnu --release
 #      - RUSTFLAGS="-Z sanitizer=address" cargo build --target x86_64-unknown-linux-gnu --workspace
-#      - RUSTFLAGS="-Z sanitizer=address" cargo test --target x86_64-unknown-linux-gnu --workspace
+      - cargo install clippy
+      - cargo clippy --all-targets --all-features
       # build special tests
 #      - RUSTFLAGS="-Z sanitizer=address" cargo bench --target x86_64-unknown-linux-gnu --tests test_performance -- --nocapture
 
