@@ -863,8 +863,10 @@ steps:
       - export ASAN_SYMBOLIZER_PATH=/usr/bin/llvm-symbolizer
       - export ASAN_OPTIONS=detect_leaks=1:detect_stack_use_after_return=1:debug=true:print_stats=true:verbosity=2
       - cd /drone/src/ipc
-      - RUSTFLAGS="-Z sanitizer=address" cargo build --target x86_64-unknown-linux-gnu --workspace
-      - RUSTFLAGS="-Z sanitizer=address" cargo test --target x86_64-unknown-linux-gnu --workspace
+      - RUSTFLAGS="-Z sanitizer=address" cargo build --target x86_64-unknown-linux-gnu
+      - RUSTFLAGS="-Z sanitizer=address" cargo test --target x86_64-unknown-linux-gnu
+#      - RUSTFLAGS="-Z sanitizer=address" cargo build --target x86_64-unknown-linux-gnu --workspace
+#      - RUSTFLAGS="-Z sanitizer=address" cargo test --target x86_64-unknown-linux-gnu --workspace
       # build special tests
       - RUSTFLAGS="-Z sanitizer=address" cargo bench --target x86_64-unknown-linux-gnu --tests test_performance -- --nocapture
 
