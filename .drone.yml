@@ -859,6 +859,9 @@ steps:
       OCAML_LOG_ENABLED: false
     commands:
       # build and test with sanitizers
+      - apt-get install -y llvm llvm-dev
+      - export ASAN_SYMBOLIZER_PATH=/usr/bin/llvm-symbolizer
+      - ls /usr/bin/llvm-symbolizer
       - ASAN_OPTIONS=detect_stack_use_after_return=1 RUSTFLAGS="-Z sanitizer=address" cargo build --target x86_64-unknown-linux-gnu --workspace
       - ASAN_OPTIONS=detect_stack_use_after_return=1 RUSTFLAGS="-Z sanitizer=address" cargo test --target x86_64-unknown-linux-gnu --workspace
       # build special tests
