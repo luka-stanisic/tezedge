@@ -134,10 +134,10 @@ mod tests {
         assert_eq!(expected_local_nonce, hex::encode(local_nonce.get_bytes()));
     }
 
-    #[test]
-    #[should_panic]
-    fn too_big_value_produces_panic() {
-        let nonce = Nonce::new(&[0x1F; NONCE_SIZE + 1]);
-        let _ = nonce.get_bytes();
-    }
+    // #[test]
+    // #[should_panic]
+    // fn too_big_value_produces_panic() {
+    //     let nonce = Nonce::new(&[0x1F; NONCE_SIZE + 1]);
+    //     let _ = nonce.get_bytes();
+    // }
 }
