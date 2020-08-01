@@ -16,7 +16,8 @@ use tokio::io::{ReadHalf, WriteHalf};
 use tokio::net::TcpStream;
 use tokio::prelude::*;
 
-use crypto::crypto_box::{CryptoError, decrypt, encrypt, PrecomputedKey};
+use crypto::crypto_box::{decrypt, encrypt, PrecomputedKey};
+use crypto::CryptoError;
 use crypto::nonce::Nonce;
 use tezos_encoding::binary_reader::BinaryReaderError;
 use tezos_messages::p2p::binary_message::{BinaryChunk, BinaryChunkError, BinaryMessage, CONTENT_LENGTH_FIELD_BYTES};

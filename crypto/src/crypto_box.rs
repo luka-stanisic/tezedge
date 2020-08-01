@@ -1,12 +1,14 @@
 // Copyright (c) SimpleStaking and Tezedge Contributors
 // SPDX-License-Identifier: MIT
 
-use failure::Fail;
+use std::ops::Deref;
+
 use hex::{FromHex, FromHexError};
 use sodiumoxide::crypto::box_;
 
+use crate::CryptoError;
+
 use super::nonce::Nonce;
-use std::ops::Deref;
 
 pub const BOX_ZERO_BYTES: usize = 32;
 const CRYPTO_KEY_SIZE: usize = 32;
@@ -102,15 +104,6 @@ impl Deref for PrecomputedKey {
     }
 }
 
-
-#[derive(Debug, Fail)]
-pub enum CryptoError {
-    #[fail(display = "invalid nonce size: {}", _0)]
-    InvalidNonceSize(usize),
-    #[fail(display = "failed to decrypt")]
-    FailedToDecrypt,
-}
-
 /// Create `PrecomputedKey` from public key and secret key
 ///
 /// # Arguments
@@ -127,7 +120,8 @@ pub fn precompute(pk_as_hex_string: &str, sk_as_hex_string: &str) -> Result<Prec
 /// * `nonce` - Nonce required to encode message
 /// * `pck` - Precomputed key required to encode message
 pub fn encrypt(msg: &[u8], nonce: &Nonce, pck: &PrecomputedKey) -> Result<Vec<u8>, CryptoError> {
-    let nonce_bytes = nonce.get_bytes();
+    // TODO: refactornut
+    let nonce_bytes = nonce.get_bytes()?;
     if nonce_bytes.len() == NONCE_SIZE {
         let mut nonce_arr = [0u8; NONCE_SIZE];
         nonce_arr.copy_from_slice(&nonce_bytes);
@@ -146,7 +140,7 @@ pub fn encrypt(msg: &[u8], nonce: &Nonce, pck: &PrecomputedKey) -> Result<Vec<u8
 /// * `nonce` - Nonce required to decode message
 /// * `pck` - Precomputed key required to decode message
 pub fn decrypt(enc: &[u8], nonce: &Nonce, pck: &PrecomputedKey) -> Result<Vec<u8>, CryptoError> {
-    let nonce_bytes = nonce.get_bytes();
+    let nonce_bytes = nonce.get_bytes()?;
     if nonce_bytes.len() == NONCE_SIZE {
         let mut nonce_arr = [0u8; NONCE_SIZE];
         nonce_arr.copy_from_slice(&nonce_bytes);
@@ -165,6 +159,7 @@ pub fn decrypt(enc: &[u8], nonce: &Nonce, pck: &PrecomputedKey) -> Result<Vec<u8
 #[cfg(test)]
 mod tests {
     use failure::Error;
+
     use super::*;
 
     #[test]

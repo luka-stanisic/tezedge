@@ -354,7 +354,7 @@ async fn bootstrap(
         info.listener_port,
         &info.public_key,
         &info.proof_of_work_stamp,
-        &Nonce::random().get_bytes(),
+        &Nonce::random().get_bytes().expect("expected correct nonce"),
         vec![supported_protocol_version.clone()]);
     let connection_message_sent = {
         let connection_message_bytes = BinaryChunk::from_content(&connection_message.as_bytes()?)?;

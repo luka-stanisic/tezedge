@@ -5,6 +5,8 @@ use std::cmp::Ordering;
 
 use num_bigint::{BigUint, RandBigInt};
 
+use crate::CryptoError;
+
 use super::blake2b;
 
 const INIT_TO_RESP_SEED: &[u8] = b"Init -> Resp";
@@ -47,17 +49,17 @@ impl Nonce {
         Nonce { value: &self.value + 1u32 }
     }
 
-    /// Create bytes representation equal to this nonce
-    pub fn get_bytes(&self) -> Vec<u8> {
+    /// Create bytes representation equal to this nonce, returns CryptoError if is greater than configured NONCE_SIZE
+    pub fn get_bytes(&self) -> Result<Vec<u8>, CryptoError> {
         let mut bytes = self.value.to_bytes_be();
         match bytes.len().cmp(&NONCE_SIZE) {
-            Ordering::Equal => bytes,
+            Ordering::Equal => Ok(bytes),
             Ordering::Less => {
                 let mut zero_prefixed_bytes = vec![0u8; NONCE_SIZE - bytes.len()];
                 zero_prefixed_bytes.append(&mut bytes);
-                zero_prefixed_bytes
+                Ok(zero_prefixed_bytes)
             }
-            Ordering::Greater => panic!("Nonce value overflow"),
+            Ordering::Greater => Err(CryptoError::InvalidNonceSize(bytes.len())),
         }
     }
 
@@ -105,7 +107,7 @@ mod tests {
         let bytes_0 = hex::decode("0000000000cff52f4be9352787d333e616a67853640d72c5").unwrap();
         let nonce_0 = Nonce::new(&bytes_0);
         let nonce_1 = nonce_0.increment();
-        let bytes_1 = nonce_1.get_bytes();
+        let bytes_1 = nonce_1.get_bytes().expect("expected correct nonce");
         let expected_bytes_1 = hex::decode("0000000000cff52f4be9352787d333e616a67853640d72c6").unwrap();
         assert_eq!(expected_bytes_1, bytes_1)
     }
@@ -118,8 +120,8 @@ mod tests {
         let NoncePair { local: local_nonce, remote: remote_nonce } = generate_nonces(&sent_msg, &recv_msg, false);
         let expected_local_nonce = "8dde158c55cff52f4be9352787d333e616a67853640d72c5";
         let expected_remote_nonce = "e67481a23cf9b404626a12bd405066e161b32dc53f469153";
-        assert_eq!(expected_remote_nonce, hex::encode(remote_nonce.get_bytes()));
-        assert_eq!(expected_local_nonce, hex::encode(local_nonce.get_bytes()));
+        assert_eq!(expected_remote_nonce, hex::encode(remote_nonce.get_bytes().expect("expected correct nonce")));
+        assert_eq!(expected_local_nonce, hex::encode(local_nonce.get_bytes().expect("expected correct nonce")));
     }
 
     #[test]
@@ -130,14 +132,13 @@ mod tests {
         let NoncePair { local: local_nonce, remote: remote_nonce } = generate_nonces(&sent_msg, &recv_msg, true);
         let expected_local_nonce = "ff0451d94af9f75a46d74a2a9f685cff20222a15829f121d";
         let expected_remote_nonce = "8a09a2c43a61aa6eccee084aa66da9bc94b441b17615be58";
-        assert_eq!(expected_remote_nonce, hex::encode(remote_nonce.get_bytes()));
-        assert_eq!(expected_local_nonce, hex::encode(local_nonce.get_bytes()));
+        assert_eq!(expected_remote_nonce, hex::encode(remote_nonce.get_bytes().expect("expected correct nonce")));
+        assert_eq!(expected_local_nonce, hex::encode(local_nonce.get_bytes().expect("expected correct nonce")));
     }
 
-    // #[test]
-    // #[should_panic]
-    // fn too_big_value_produces_panic() {
-    //     let nonce = Nonce::new(&[0x1F; NONCE_SIZE + 1]);
-    //     let _ = nonce.get_bytes();
-    // }
+    #[test]
+    fn too_big_value_produces_error() {
+        let nonce = Nonce::new(&[0x1F; NONCE_SIZE + 1]);
+        assert!(nonce.get_bytes().is_err());
+    }
 }
