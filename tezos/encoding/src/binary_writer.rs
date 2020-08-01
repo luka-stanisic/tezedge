@@ -22,7 +22,7 @@ use crate::types::{self, Value};
 ///
 /// # Examples:
 ///
-/// ```
+/// ```rust
 /// use serde::Serialize;
 /// use tezos_encoding::binary_writer;
 /// use tezos_encoding::encoding::{Field, Encoding};

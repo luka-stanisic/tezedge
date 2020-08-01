@@ -85,7 +85,7 @@ impl BinaryReader {
     ///
     /// # Examples:
     ///
-    /// ```
+    /// ```rust
     /// use serde::Deserialize;
     /// use tezos_encoding::binary_reader::BinaryReader;
     /// use tezos_encoding::de;
