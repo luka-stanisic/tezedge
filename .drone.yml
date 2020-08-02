@@ -855,7 +855,6 @@ steps:
   - name: address-sanitizer-test-and-build
     image: simplestakingcom/tezedge-ci-builder:latest
     privileged: true
-    detach: true
     user: root
     volumes:
       - name: performance
@@ -869,12 +868,7 @@ steps:
       - apt-get install -y llvm llvm-dev
       - export LSAN_SYMBOLIZER_PATH=/usr/bin/llvm-symbolizer
       - RUSTFLAGS="-Z sanitizer=leak" cargo build --workspace
-      - RUSTFLAGS="-Z sanitizer=leak" cargo test --package shell -- --nocapture --ignored test_actors_apply_blocks_and_check_context_and_mempool
-
-  - name: bootstrapping-tezedge
-    image: simplestakingcom/tezos-node-bootstrap:latest
-    commands:
-      - tezos-node-bootstrap --bootstrap --level=$${TO_BLOCK_HEADER} --node_tezedge=$${TEZEDGE_NODE_RPC_CONTEXT_ROOT}
+      - RUSTFLAGS="-Z sanitizer=leak" PROTOCOL_RUNNER=./target/debug/protocol-runner cargo test --package shell -- --nocapture --ignored test_actors_apply_blocks_and_check_context_and_mempool
 
 volumes:
   - name: performance
