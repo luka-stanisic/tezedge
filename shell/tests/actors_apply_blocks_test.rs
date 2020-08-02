@@ -112,7 +112,7 @@ fn test_actors_apply_blocks_and_check_context_and_mempool() -> Result<(), failur
                 TezosRuntimeConfiguration {
                     log_enabled: common::is_ocaml_log_enabled(),
                     no_of_ffi_calls_treshold_for_gc: common::no_of_ffi_calls_treshold_for_gc(),
-                    debug_mode: false,
+                    debug_mode: true,
                 },
                 tezos_env.clone(),
                 false,
@@ -132,7 +132,7 @@ fn test_actors_apply_blocks_and_check_context_and_mempool() -> Result<(), failur
     let actor_system = SystemBuilder::new().name("test_actors_apply_blocks_and_check_context").log(log.clone()).create().expect("Failed to create actor system");
     let shell_channel = ShellChannel::actor(&actor_system).expect("Failed to create shell channel");
     let _ = test_actor::TestActor::actor(&actor_system, shell_channel.clone(), test_result_sender);
-    let _ = ContextListener::actor(&actor_system, &persistent_storage, apply_protocol_events.expect("Context listener needs event server"), log.clone(), false).expect("Failed to create context event listener");
+    let _ = ContextListener::actor(&actor_system, &persistent_storage, apply_protocol_events.expect("Context listener needs event server"), log.clone(), true).expect("Failed to create context event listener");
     let _ = ChainFeeder::actor(&actor_system, shell_channel.clone(), &persistent_storage, &init_storage_data, &tezos_env, apply_protocol_commands, log.clone()).expect("Failed to create chain feeder");
     let _ = MempoolPrevalidator::actor(
         &actor_system,
