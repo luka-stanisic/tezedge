@@ -868,7 +868,7 @@ steps:
       - apt-get install -y llvm llvm-dev
       - export LSAN_SYMBOLIZER_PATH=/usr/bin/llvm-symbolizer
       - RUSTFLAGS="-Z sanitizer=leak" cargo build --workspace
-      - RUSTFLAGS="-Z sanitizer=leak" PROTOCOL_RUNNER=./target/debug/protocol-runner cargo test --package shell -- --nocapture --ignored test_actors_apply_blocks_and_check_context_and_mempool
+      - RUSTFLAGS="-Z sanitizer=leak" PROTOCOL_RUNNER=/drone/src/target/debug/protocol-runner cargo test --package shell -- --nocapture --ignored test_actors_apply_blocks_and_check_context_and_mempool
 
 volumes:
   - name: performance
