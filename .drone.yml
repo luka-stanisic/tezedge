@@ -894,3 +894,61 @@ volumes:
 trigger:
   branch:
     - feature/perf
+
+---
+kind: pipeline
+name: sanitized-build-and-tests2
+
+workspace:
+  path: /drone/src
+
+environment:
+  NETWORK: carthagenet
+  FROM_BLOCK_HEADER: 0
+  TO_BLOCK_HEADER: 1000
+  SODIUM_USE_PKG_CONFIG: 1
+  LD_LIBRARY_PATH: ./tezos/interop/lib_tezos/artifacts:./target/debug
+  TEZEDGE_NODE_RPC_CONTEXT_ROOT: http://address-sanitizer-test-and-build:18732
+
+steps:
+  - name: cleanup-data
+    image: alpine/git
+    user: root
+    volumes:
+      - name: performance
+        path: /data
+    commands:
+      - rm -rf /data/*
+
+  - name: address-sanitizer-test-and-build
+    image: simplestakingcom/tezedge-ci-builder:latest
+    privileged: true
+    detach: true
+    user: root
+    volumes:
+      - name: performance
+        path: /data
+    environment:
+      RUST_BACKTRACE: 1
+      OCAML_BUILD_CHAIN: remote
+      LOG_LEVEL: info
+      OCAML_LOG_ENABLED: false
+    commands:
+      - apt-get install -y llvm llvm-dev
+      - export LSAN_SYMBOLIZER_PATH=/usr/bin/llvm-symbolizer
+      - RUSTFLAGS="-Z sanitizer=leak" cargo build --workspace
+      - RUSTFLAGS="-Z sanitizer=leak" cargo test --package shell -- --nocapture --ignored test_actors_apply_blocks_and_check_context_and_mempool
+
+  - name: bootstrapping-tezedge
+    image: simplestakingcom/tezos-node-bootstrap:latest
+    commands:
+      - tezos-node-bootstrap --bootstrap --level=$${TO_BLOCK_HEADER} --node_tezedge=$${TEZEDGE_NODE_RPC_CONTEXT_ROOT}
+
+volumes:
+  - name: performance
+    host:
+      path: /etc/tezedge-ci-build-performance2/
+
+trigger:
+  branch:
+    - feature/perf
