@@ -840,7 +840,7 @@ environment:
   TO_BLOCK_HEADER: 1000
   SODIUM_USE_PKG_CONFIG: 1
   LD_LIBRARY_PATH: ./tezos/interop/lib_tezos/artifacts:./target/debug
-  TEZEDGE_NODE_RPC_CONTEXT_ROOT: http://tezedge-node-run:18732
+  TEZEDGE_NODE_RPC_CONTEXT_ROOT: http://address-sanitizer-test-and-build:18732
 
 steps:
   - name: cleanup-data
