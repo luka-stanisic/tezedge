@@ -53,6 +53,7 @@ fn ipc_fork_and_exchange() -> Result<(), failure::Error> {
     Ok(())
 }
 
+#[ignore]
 #[test]
 fn ipc_fork_and_panic() -> Result<(), failure::Error> {
     let sock_path = temp_sock();
@@ -87,6 +88,7 @@ fn ipc_fork_and_panic() -> Result<(), failure::Error> {
 }
 
 
+#[ignore]
 #[test]
 fn ipc_connect_panic() -> Result<(), failure::Error> {
     let sock_path = temp_sock();
