@@ -834,6 +834,14 @@ name: sanitized-build-and-tests
 workspace:
   path: /drone/src
 
+environment:
+  NETWORK: carthagenet
+  FROM_BLOCK_HEADER: 0
+  TO_BLOCK_HEADER: 1000
+  SODIUM_USE_PKG_CONFIG: 1
+  LD_LIBRARY_PATH: ./tezos/interop/lib_tezos/artifacts:./target/debug
+  TEZEDGE_NODE_RPC_CONTEXT_ROOT: http://tezedge-node-run:18732
+
 steps:
   - name: cleanup-data
     image: alpine/git
@@ -847,6 +855,7 @@ steps:
   - name: address-sanitizer-test-and-build
     image: simplestakingcom/tezedge-ci-builder:latest
     privileged: true
+    detach: true
     user: root
     volumes:
       - name: performance
@@ -864,12 +873,18 @@ steps:
       - export ASAN_SYMBOLIZER_PATH=/usr/bin/llvm-symbolizer
       - export ASAN_OPTIONS=detect_leaks=1:detect_stack_use_after_return=1:debug=true:print_stats=true:verbosity=2
 #      - export RUST_TEST_THREADS=1
-      - RUSTFLAGS="-Z sanitizer=address" cargo build --workspace
+      - cargo build --workspace
 #      - RUSTFLAGS="-Z sanitizer=address" cargo test --target x86_64-unknown-linux-gnu
 #      - RUSTFLAGS="-Z sanitizer=leak" cargo test --target x86_64-unknown-linux-gnu
 #      - RUSTFLAGS="-Z sanitizer=memory" cargo test --target x86_64-unknown-linux-gnu
 #      - RUSTFLAGS="-Z sanitizer=thread" cargo test --target x86_64-unknown-linux-gnu
       - RUSTFLAGS="-Z sanitizer=address" cargo run --bin light-node -- --config-file "./light_node/etc/tezedge/tezedge_drone.config" --protocol-runner=./target/debug/protocol-runner --network "$${NETWORK}" --identity-file "/drone/src/docker/identities/identity_tezedge.json" --p2p-port=19732
+
+  - name: bootstrapping-tezedge
+    image: simplestakingcom/tezos-node-bootstrap:latest
+    commands:
+      - tezos-node-bootstrap --bootstrap --level=$${TO_BLOCK_HEADER} --node_tezedge=$${TEZEDGE_NODE_RPC_CONTEXT_ROOT}
+
 
 volumes:
   - name: performance
