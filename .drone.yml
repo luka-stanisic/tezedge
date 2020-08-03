@@ -107,6 +107,7 @@ environment:
   SODIUM_USE_PKG_CONFIG: 1
   NETWORK: sandbox
   OCAML_NODE_RPC_CONTEXT_ROOT: http://ocaml-node-sandbox-run:8732
+  OCAML_NODE_RPC_CONTEXT_ROOT2: http://ocaml-node-sandbox-run2:8732
   TEZEDGE_NODE_RPC_CONTEXT_ROOT: http://tezedge-node-sandbox-run:18732
   ACTIVATOR_SECRET: unencrypted:edsk31vznjHSSpGExDMHYASz45VZqXN4DPxvsa4hAyY8dHM28cZzp6
   BOOTSTRAP1_IDENTITY: tz1KqTpEZ7Yob7QbPE4Hy4Wo8fHG8LhKxZSx
@@ -165,6 +166,27 @@ steps:
   commands:
     - tezos-node-bootstrap --bootstrap --level=0 --node_ocaml=$${OCAML_NODE_RPC_CONTEXT_ROOT}
 
+  # run empty ocaml sandbox and wait for it
+- name: ocaml-node-sandbox-run2
+  user: root
+  image: tezos/tezos:v7.2
+  detach: true
+  volumes:
+    - name: sandbox-data2
+      path: /tmp/sandbox
+  commands:
+    - ip -o -4 addr show | awk -F '[ /]+' '/global/ {print $4}' > /tmp/sandbox/ocaml_ip2.txt
+    - mkdir /home/tezos/data/
+    - mkdir /tmp/sandbox/tezos-client
+    - tezos-node config init --network sandbox --data-dir /home/tezos/data/ --net-addr 0.0.0.0:9732 --rpc-addr 0.0.0.0:8732 --expected-pow 0.0 --connections 1
+    - tezos-node identity generate 0.0 --data-dir /home/tezos/data/
+    - tezos-node run --network sandbox --data-dir /home/tezos/data/ --sandbox /tmp/sandbox/sandbox-patch-context.json --no-bootstrap-peers --singleprocess --bootstrap-threshold 1 -vv
+
+- name: wait-for-ocaml2-to-start
+  image: simplestakingcom/tezos-node-bootstrap:latest
+  commands:
+    - tezos-node-bootstrap --bootstrap --level=0 --node_ocaml2=$${OCAML_NODE_RPC_CONTEXT_ROOT2}
+
 # connect both nodes with tezos-admin-client
 - name: connect-ocaml-and-rust
   user: root
@@ -190,6 +212,7 @@ steps:
     - tezos-client --base-dir /tmp/sandbox/tezos-client -A `cat /tmp/sandbox/ocaml_ip.txt` -P 8732 import secret key bootstrap1 $${BOOTSTRAP1_SECRET}
     - tezos-client --base-dir /tmp/sandbox/tezos-client -A `cat /tmp/sandbox/ocaml_ip.txt` -P 8732 import secret key bootstrap2 $${BOOTSTRAP2_SECRET}
     - tezos-client --base-dir /tmp/sandbox/tezos-client -A `cat /tmp/sandbox/tezedge_ip.txt` -P 18732 --block genesis activate protocol PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb with fitness 1 and key activator and parameters /tmp/sandbox/006-carthage-protocol-parameters.json --timestamp $(TZ='AAA+1' date +%FT%TZ)
+    - tezos-client --base-dir /tmp/sandbox/tezos-client -A `cat /tmp/sandbox/ocaml_ip2.txt` -P 8732 --block genesis activate protocol PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb with fitness 1 and key activator and parameters /tmp/sandbox/006-carthage-protocol-parameters.json --timestamp $(TZ='AAA+1' date +%FT%TZ)
 
 # test checks if this block is synchronized to rust node through p2p
 - name: wait-for-sync-on-level-1
@@ -228,6 +251,7 @@ steps:
     - tezos-admin-client -A `cat /tmp/sandbox/ocaml_ip.txt` -P 8732 connect address `cat /tmp/sandbox/tezedge_ip.txt`:9732
     - sleep 1
     - tezos-client --base-dir /tmp/sandbox/tezos-client -A `cat /tmp/sandbox/tezedge_ip.txt` -P 18732 transfer 1 from bootstrap1 to bootstrap2 --burn-cap 1 &
+    - tezos-client --base-dir /tmp/sandbox/tezos-client -A `cat /tmp/sandbox/ocaml_ip2.txt` -P 18732 transfer 2 from bootstrap1 to bootstrap2 --burn-cap 2 &
     - sleep 2
 
 - name: check-mempool-after-transfer
@@ -259,9 +283,11 @@ steps:
       path: /tmp/sandbox
   commands:
     - tezos-admin-client -A `cat /tmp/sandbox/ocaml_ip.txt` -P 8732 connect address `cat /tmp/sandbox/tezedge_ip.txt`:9732
+    - tezos-admin-client -A `cat /tmp/sandbox/ocaml_ip2.txt` -P 8732 connect address `cat /tmp/sandbox/tezedge_ip.txt`:9732
     - sleep 1
     - tezos-client --base-dir /tmp/sandbox/tezos-client -A `cat /tmp/sandbox/ocaml_ip.txt` -P 8732 bake for bootstrap2
-    - tezos-admin-client -A `cat /tmp/sandbox/ocaml_ip.txt` -P 8732 connect address `cat /tmp/sandbox/tezedge_ip.txt`:9732
+    - tezos-client --base-dir /tmp/sandbox/tezos-client -A `cat /tmp/sandbox/ocaml_ip2.txt` -P 8732 bake for bootstrap2
+#    - tezos-admin-client -A `cat /tmp/sandbox/ocaml_ip.txt` -P 8732 connect address `cat /tmp/sandbox/tezedge_ip.txt`:9732
 
 # test checks if this block is synchronized to rust node through p2p
 - name: wait-for-sync-on-level-2
