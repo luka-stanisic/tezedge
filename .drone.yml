@@ -172,12 +172,11 @@ steps:
   image: tezos/tezos:v7.2
   detach: true
   volumes:
-    - name: sandbox-data2
+    - name: sandbox-data
       path: /tmp/sandbox
   commands:
     - ip -o -4 addr show | awk -F '[ /]+' '/global/ {print $4}' > /tmp/sandbox/ocaml_ip2.txt
     - mkdir /home/tezos/data/
-    - mkdir /tmp/sandbox/tezos-client
     - tezos-node config init --network sandbox --data-dir /home/tezos/data/ --net-addr 0.0.0.0:9732 --rpc-addr 0.0.0.0:8732 --expected-pow 0.0 --connections 1
     - tezos-node identity generate 0.0 --data-dir /home/tezos/data/
     - tezos-node run --network sandbox --data-dir /home/tezos/data/ --sandbox /tmp/sandbox/sandbox-patch-context.json --no-bootstrap-peers --singleprocess --bootstrap-threshold 1 -vv
@@ -251,7 +250,7 @@ steps:
     - tezos-admin-client -A `cat /tmp/sandbox/ocaml_ip.txt` -P 8732 connect address `cat /tmp/sandbox/tezedge_ip.txt`:9732
     - sleep 1
     - tezos-client --base-dir /tmp/sandbox/tezos-client -A `cat /tmp/sandbox/tezedge_ip.txt` -P 18732 transfer 1 from bootstrap1 to bootstrap2 --burn-cap 1 &
-    - tezos-client --base-dir /tmp/sandbox/tezos-client -A `cat /tmp/sandbox/ocaml_ip2.txt` -P 18732 transfer 2 from bootstrap1 to bootstrap2 --burn-cap 2 &
+    - tezos-client --base-dir /tmp/sandbox/tezos-client -A `cat /tmp/sandbox/ocaml_ip2.txt` -P 8732 transfer 2 from bootstrap1 to bootstrap2 --burn-cap 2 &
     - sleep 2
 
 - name: check-mempool-after-transfer
